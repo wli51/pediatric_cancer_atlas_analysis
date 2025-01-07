@@ -4,6 +4,10 @@ In this module, we will add all relevant information for downloading the dataset
 
 --- 
 
+## Platemap csv files access (Development)
+
+Provided by collaborators as excel files. Using directly the manually reformmated version from [WayScience/pediatric_cancer_atlas_profiling](https://github.com/WayScience/pediatric_cancer_atlas_profiling).
+
 ## Current Access Instructions for Miscroscopy Images (Development)
 
 **Note:** The current method of accessing and downloading the microscopy image data is intended for development purposes only. When the data becomes publicly available, access methods will change, and this README will be updated to reflect the final public access protocol.
