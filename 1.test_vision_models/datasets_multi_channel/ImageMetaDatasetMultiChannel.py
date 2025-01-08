@@ -109,20 +109,20 @@ class ImageMetaDatasetMultiChannel(ImageMetaDataset):
         )
 
         target_images = np.stack([
-            np.array(Image.open(self._ImageMetaDataset__itarget_dir / target_name).convert("I;16"))
+            np.array(Image.open(self._ImageMetaDataset__target_dir / target_name).convert("I;16"))
             for target_name in self.__target_names
         ], axis=0)  # Stacking along a channel axis
 
-        if self._ImageDataset__input_transform:
-            input_image = self._ImageDataset__input_transform(image=input_image)["image"]
+        if self._ImageMetaDataset__input_transform:
+            input_image = self._ImageMetaDataset__input_transform(image=input_image)["image"]
 
             # Reshape transformed image
             input_image = torch.from_numpy(input_image).unsqueeze(0).float()
 
-        if self._ImageDataset__target_transform:
+        if self._ImageMetaDataset__target_transform:
             transformed_target_images = []
             for channel in target_images:
-                transformed_channel = self._ImageDataset__target_transform(image=channel)["image"]
+                transformed_channel = self._ImageMetaDataset__target_transform(image=channel)["image"]
                 transformed_target_images.append(transformed_channel)
             target_images = torch.stack([torch.from_numpy(img).float() for img in transformed_target_images], dim=0)
 
