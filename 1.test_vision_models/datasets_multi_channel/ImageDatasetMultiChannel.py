@@ -109,7 +109,7 @@ class ImageDatasetMultiChannel(ImageDataset):
 
         :param _idx: index of the image
         :type _idx: int
-        :return: input image, target images, and dictionary of names
+        :return: input image, target images
         :rtype: tuple
         """
 
@@ -142,7 +142,4 @@ class ImageDatasetMultiChannel(ImageDataset):
                 transformed_target_images.append(transformed_channel)
             target_images = torch.stack([torch.from_numpy(img).float() for img in transformed_target_images], dim=0)
 
-        return (input_image, 
-                target_images,
-                {"input_name": self.__input_name, "target_names": self.__target_names},
-        )        
+        return input_image, target_images
