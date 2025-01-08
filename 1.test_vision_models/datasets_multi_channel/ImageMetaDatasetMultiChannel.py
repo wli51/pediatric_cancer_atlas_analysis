@@ -1,103 +1,125 @@
-import pandas as pd
+import pathlib
+from typing import Pattern, Optional
+
+import re
 import numpy as np
 import torch
 from PIL import Image
-from torch.utils.data import Dataset
+from albumentations import ImageOnlyTransform
+from external_code_CM_vision_models.datasets.ImageMetaDataset import ImageMetaDataset
 
-class ImageMetaDataset(Dataset):
+class ImageMetaDatasetMultiChannel(ImageMetaDataset):
     """
-    Dataset for paired Brightfield and multi-channel target images,
-    with metadata for inputs and targets.
+    Iterable Image Dataset for paired input and multi-channel target images.
     """
 
-    def __init__(self, paired_df, input_transform=None, target_transform=None):
+    def __init__(
+            self,
+            _input_dir: pathlib.Path,
+            _target_dir: pathlib.Path,
+            _input_channel_name: str,
+            _target_channel_names: list[str],
+            _channel_regex_expr: Pattern[str] = r"ch\d+",
+            _input_transform: Optional[ImageOnlyTransform] = None,
+            _target_transform: Optional[ImageOnlyTransform] = None,
+            ):
+        
+        super().__init__(
+            _input_dir=_input_dir,
+            _target_dir=_target_dir,
+            _input_transform=_input_transform,
+            _target_transform=_target_transform,
+        )
+
+        self.__input_channel_name = _input_channel_name
+        self.__target_channel_names = _target_channel_names
+        self.__channel_regex_expr = _channel_regex_expr
+
+        # ensure that only tiff extensions files are included
+        self._ImageMetaDataset__image_path = [p for p in self._ImageMetaDataset__image_path if p.suffix == ".tiff"]
+        self._ImageMetaDataset__image_path = [
+            p for p in self._ImageMetaDataset__image_path if self._extract_channel(p) == self.__input_channel_name
+        ]
+    
+    def _extract_channel(self, 
+                         path: pathlib.Path)->str:
+        
+        """helper function for the extraction of channel representation
+
+        :param path: pathlib object of (image) file 
+        :raises ValueError: When no pattern matches in the filename
+        :raises ValueError: When multiple patterns matche in the filename
+        :return: channel name substring
+        :rtype: str
         """
-        Args:
-            paired_df (pd.DataFrame): DataFrame containing paths to Brightfield and target channel images.
-            input_transform (callable, optional): Transform to apply to the input image.
-            target_transform (callable, optional): Transform to apply to the target images.
-        """
-        self.paired_df = paired_df
-        self.__input_transform = input_transform
-        self.__target_transform = target_transform
-        self.__input_name = None  # Initialize as None
-        self.__target_names = None  # Initialize as None
-
-    def __len__(self):
-        return len(self.paired_df)
-
-    def __getitem__(self, idx):
-        """
-        Args:
-            idx (int): Index of the data to retrieve.
-
-        Returns:
-            tuple: (input_tensor, target_tensors, metadata_dict)
-        """
-        # Load Brightfield image
-        brightfield_path = self.paired_df.iloc[idx]["Brightfield"]
-        brightfield_image = np.array(Image.open(brightfield_path))
-        brightfield_image = np.expand_dims(brightfield_image, axis=0)  # Shape: (1, H, W)
-        self.__input_name = brightfield_path  # Update input name
-
-        # Load target images
-        target_channels = ["Alexa 488", "Alexa 647", "Alexa 568", "Alexa 488 Long (CP)", "HOECHST 33342"]
-        target_images = []
-        self.__target_names = []  # Update target names
-
-        for channel in target_channels:
-            target_path = self.paired_df.iloc[idx][channel]
-            target_image = np.array(Image.open(target_path))
-            target_image = np.expand_dims(target_image, axis=0)  # Shape: (1, H, W)
-            target_images.append(target_image)
-            self.__target_names.append(target_path)
-
-        # Apply transformations
-        if self.__input_transform:
-            brightfield_image = self.__input_transform(image=brightfield_image)["image"]
-            brightfield_image = torch.from_numpy(brightfield_image).float()
-        else:
-            brightfield_image = torch.from_numpy(brightfield_image).float()
-
-        if self.__target_transform:
-            target_images = [
-                torch.from_numpy(self.__target_transform(image=img)["image"]).float()
-                for img in target_images
-            ]
-        else:
-            target_images = [torch.from_numpy(img).float() for img in target_images]
-
-        # Stack target images into a single tensor (channels first)
-        target_tensor = torch.cat(target_images, dim=0)  # Shape: (5, H, W)
-
-        # Extract metadata
-        metadata = {
-            "input_name": brightfield_path,
-            "target_names": self.__target_names,
-            "PlateID": self.paired_df.iloc[idx]["PlateID"],
-            "well": self.paired_df.iloc[idx]["well"],
-            "FieldID": self.paired_df.iloc[idx]["FieldID"],
-            "Measurement": self.paired_df.iloc[idx]["Measurement"],
-        }
-
-        return brightfield_image, target_tensor, metadata
-
+        
+        matches = re.findall(self.__channel_regex_expr, path.name)
+        
+        # Ensure exactly one match
+        if len(matches) == 0:
+            raise ValueError(f"No matches found in file: {path}")
+        elif len(matches) > 1:
+            raise ValueError(f"Multiple matches found in file: {path} -> {matches}")
+        
+        # Return the single match
+        return matches[0]
+    
     @property
-    def input_transform(self):
-        return self.__input_transform
+    def input_name(self)->str:
+        """Overridden property to return the input name
 
-    @property
-    def target_transform(self):
-        return self.__target_transform
-
-    @property
-    def input_name(self):
-        if self.__input_name is None:
+        :raises ValueError: When input is not yet defined
+        :return: string representation of input name
+        :rtype: str
+        """
+        if not self.__input_name:
             raise ValueError("The input is not yet defined, so __input_name is not defined.")
         return self.__input_name
 
     @property
-    def target_name(self):
-        if self.__target_names is None or len(self.__target_names) == 0:
-            raise ValueError("The target names are not yet defined, so __target_names is not defined.")
+    def target_names(self)->list[str]:
+        """New property to return the target names as this is a multi-channel dataset class
+
+        :raises ValueError: When target is not yet defined
+        :return: list of string representations of target names
+        :rtype: list[str]
+        """
+        if not self.__target_names:
+            raise ValueError("The target is not yet defined, so __target_names is not defined.")
         return self.__target_names
+
+    def __getitem__(self, _idx: int):
+        
+        self.__input_name = self._ImageMetaDataset__image_path[_idx].name
+        self.__target_names = [
+            str(self.__input_name).replace(
+                self.__input_channel_name, 
+                target_channel_names) for target_channel_names in self.__target_channel_names
+        ]
+
+        input_image = np.array(
+                Image.open(self._ImageMetaDataset__input_dir / self.__input_name).convert("I;16")
+        )
+
+        target_images = np.stack([
+            np.array(Image.open(self._ImageMetaDataset__itarget_dir / target_name).convert("I;16"))
+            for target_name in self.__target_names
+        ], axis=0)  # Stacking along a channel axis
+
+        if self._ImageDataset__input_transform:
+            input_image = self._ImageDataset__input_transform(image=input_image)["image"]
+
+            # Reshape transformed image
+            input_image = torch.from_numpy(input_image).unsqueeze(0).float()
+
+        if self._ImageDataset__target_transform:
+            transformed_target_images = []
+            for channel in target_images:
+                transformed_channel = self._ImageDataset__target_transform(image=channel)["image"]
+                transformed_target_images.append(transformed_channel)
+            target_images = torch.stack([torch.from_numpy(img).float() for img in transformed_target_images], dim=0)
+
+        return (input_image, 
+                target_images,
+                {"input_name": self.__input_name, "target_names": self.__target_names},
+        )
