@@ -81,23 +81,27 @@ class ImageDatasetMultiChannel(ImageDataset):
         return matches[0]
     
     @property
-    def input_transform(self):
-        return self.__input_transform
+    def input_name(self)->str:
+        """Overridden property to return the input name
 
-    @property
-    def target_transform(self):
-        return self.__target_transform
-
-    @property
-    def input_name(self):
-        if self.__input_name is None:
+        :raises ValueError: When input is not yet defined
+        :return: string representation of input name
+        :rtype: str
+        """
+        if not self.__input_name:
             raise ValueError("The input is not yet defined, so __input_name is not defined.")
         return self.__input_name
 
     @property
-    def target_name(self):
-        if self.__target_names is None or len(self.__target_names) == 0:
-            raise ValueError("The target names are not yet defined, so __target_names is not defined.")
+    def target_names(self)->list[str]:
+        """New property to return the target names as this is a multi-channel dataset class
+
+        :raises ValueError: When target is not yet defined
+        :return: list of string representations of target names
+        :rtype: list[str]
+        """
+        if not self.__target_names:
+            raise ValueError("The target is not yet defined, so __target_names is not defined.")
         return self.__target_names
 
     def __getitem__(self, _idx):
