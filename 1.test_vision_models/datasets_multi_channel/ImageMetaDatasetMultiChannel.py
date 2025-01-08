@@ -89,6 +89,13 @@ class ImageMetaDatasetMultiChannel(ImageMetaDataset):
         return self.__target_names
 
     def __getitem__(self, _idx: int):
+        """Returns input and target images and their names.
+
+        :param _idx: Index of the image to retrieve
+        :type _idx: int
+        :return: input image, target images, and dictionary of channel metadata
+        :rtype: tuple
+        """
         
         self.__input_name = self._ImageMetaDataset__image_path[_idx].name
         self.__target_names = [
