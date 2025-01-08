@@ -1,0 +1,8 @@
+## Ignore notebook file for testing purposes
+*.test.ipynb
+
+## pyc file
+*.pyc
+
+## pycache
+__pycache__
