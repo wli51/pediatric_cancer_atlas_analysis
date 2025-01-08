@@ -99,3 +99,46 @@ class ImageDatasetMultiChannel(ImageDataset):
         if self.__target_names is None or len(self.__target_names) == 0:
             raise ValueError("The target names are not yet defined, so __target_names is not defined.")
         return self.__target_names
+
+    def __getitem__(self, _idx):
+        """Retrieve input and target image
+
+        :param _idx: index of the image
+        :type _idx: int
+        :return: input image, target images, and dictionary of names
+        :rtype: tuple
+        """
+
+        self.__input_name = self._ImageDataset__image_path[_idx].name
+        self.__target_names = [
+            str(self.__input_name).replace(
+                self.__input_channel_name, 
+                target_channel_names) for target_channel_names in self.__target_channel_names
+        ]
+
+        input_image = np.array(
+                Image.open(self._ImageDataset__input_dir / self.__input_name).convert("I;16")
+        )
+
+        target_images = np.stack([
+            np.array(Image.open(self._ImageDataset__target_dir / target_name).convert("I;16"))
+            for target_name in self.__target_names
+        ], axis=0)  # Stacking along a channel axis
+
+        if self._ImageDataset__input_transform:
+            input_image = self._ImageDataset__input_transform(image=input_image)["image"]
+
+            # Reshape transformed image
+            input_image = torch.from_numpy(input_image).unsqueeze(0).float()
+
+        if self._ImageDataset__target_transform:
+            transformed_target_images = []
+            for channel in target_images:
+                transformed_channel = self._ImageDataset__target_transform(image=channel)["image"]
+                transformed_target_images.append(transformed_channel)
+            target_images = torch.stack([torch.from_numpy(img).float() for img in transformed_target_images], dim=0)
+
+        return (input_image, 
+                target_images,
+                {"input_name": self.__input_name, "target_names": self.__target_names},
+        )        
