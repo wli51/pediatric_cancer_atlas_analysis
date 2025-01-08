@@ -7,7 +7,7 @@ For now this will serve as a temporary package-ish source to reference and subcl
 ## Overview
 Directory structure
 
-CM_vision_models/
+external_code_CM_vision_models/
 ├── datasets
 │   ├── ImageDataset.py 
 │   └── ImageMetaDataset.py

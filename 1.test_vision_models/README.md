@@ -2,7 +2,6 @@
 
 This folder houses the code and outputs from training Image-Image translation models.
 
-Most code will be adapted from [WayScience/nuclear_speckles_analysis](https://github.com/WayScience/nuclear_speckles_analysis).
+Code borrowed from [WayScience/nuclear_speckles_analysis](https://github.com/WayScience/nuclear_speckles_analysis) will live under ./CM_vision_models.
 
 ## Overview
-TODO
