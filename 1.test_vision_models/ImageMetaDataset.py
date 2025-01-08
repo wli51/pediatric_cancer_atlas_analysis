@@ -4,7 +4,6 @@ import torch
 from PIL import Image
 from torch.utils.data import Dataset
 
-
 class ImageMetaDataset(Dataset):
     """
     Dataset for paired Brightfield and multi-channel target images,
