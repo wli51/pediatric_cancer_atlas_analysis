@@ -159,10 +159,10 @@ class ImageDatasetMultiChannel(ImageDataset):
             raise ValueError("The target is not yet defined, so __target_names is not defined.")
         return self.__target_names
 
-    def __getitem__(self, _idx):
+    def __getitem__(self, _idx: int)->Tuple[torch.Tensor, torch.Tensor]:
         """Retrieve input and target image
 
-        :param _idx: index of the image
+        :param _idx: index of the image or patch if patching is enabled
         :type _idx: int
         :return: input image, target images or input patch, target patches
         :rtype: Tuple[torch.Tensor, torch.Tensor]
