@@ -1,5 +1,5 @@
 import torch
-from AbstractLoss import AbstractLoss
+from .AbstractLoss import AbstractLoss
 
 
 class PSNR(AbstractLoss):
