@@ -128,6 +128,13 @@ class ImageDatasetMultiChannel(ImageDataset):
         max_x, max_y = image_size[0] - self.__patch_dim, image_size[1] - self.__patch_dim
         return [(random.randint(0, max_x), random.randint(0, max_y)) for _ in range(self._num_patches_per_image)]
     
+    def __len__(self):
+        # If patching is enabled, return the number of patches
+        if self._patch_dim and self._num_patches_per_image:
+            return len(self._ImageDataset__image_path) * self._num_patches_per_image
+        else:
+            return super().__len__()
+
     @property
     def input_name(self)->str:
         """Overridden property to return the input name
