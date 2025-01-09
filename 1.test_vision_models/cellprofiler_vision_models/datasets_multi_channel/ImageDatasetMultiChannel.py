@@ -96,6 +96,18 @@ class ImageDatasetMultiChannel(ImageDataset):
         # Return the single match
         return matches[0]
     
+    def __get_random_patches(self, image_size: Tuple[int, int])->list[Tuple[int, int]]:
+        """Generate random coordinates for patches.
+        
+        :param image_size: size of the image
+        :type image_size: Tuple[int, int]
+
+        :return: list of patch coordinates
+        :rtype: list[Tuple[int, int]]
+        """
+        max_x, max_y = image_size[0] - self.__patch_dim, image_size[1] - self.__patch_dim
+        return [(random.randint(0, max_x), random.randint(0, max_y)) for _ in range(self.__num_patches)]
+    
     @property
     def input_name(self)->str:
         """Overridden property to return the input name
