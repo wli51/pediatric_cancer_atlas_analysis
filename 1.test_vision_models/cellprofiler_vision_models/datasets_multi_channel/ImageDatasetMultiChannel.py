@@ -69,9 +69,28 @@ class ImageDatasetMultiChannel(ImageDataset):
         self._ImageDataset__image_path = [
             p for p in self._ImageDataset__image_path if self._extract_channel(p) == self.__input_channel_name
         ]
-
+        
         self._patch_dim = _patch_dim
-        self._num_patches_per_image = _num_patches_per_image
+        if _patch_dim is None and _num_patches_per_image is not None:
+            raise ValueError("Number of patches per image should only be specified if patch dimension is specified.")
+        else:
+            self._num_patches_per_image = _num_patches_per_image
+        
+        # Store random seed for reproducibility
+        if _patch_random_seed is not None:
+            # randomly generate seed if not specified
+            self._patch_random_seed = np.random.randint(0, 2**32 - 1)
+        else:
+            self._patch_random_seed = _patch_random_seed
+
+        # Pre-generate patch coordinates for each image
+        self.__precomputed_patches = {}
+        if self.__patch_dim and self.__num_patches:
+            for idx, image_path in enumerate(self._ImageDataset__image_path):
+                image_shape = np.array(Image.open(image_path).convert("I;16")).shape[:2]
+                self.__precomputed_patches[idx] = self.__get_random_patches(image_shape)
+        else:
+            self.__precomputed_patches = None
     
     def _extract_channel(self, 
                          path: pathlib.Path)->str:
