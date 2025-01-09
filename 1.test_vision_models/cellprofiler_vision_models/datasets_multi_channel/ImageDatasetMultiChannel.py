@@ -78,7 +78,7 @@ class ImageDatasetMultiChannel(ImageDataset):
             self._num_patches_per_image = _num_patches_per_image
         
         # Store random seed for reproducibility
-        if _patch_random_seed is not None:
+        if _patch_random_seed is None:
             # randomly generate seed if not specified
             self._patch_random_seed = np.random.randint(0, 2**32 - 1)
         else:
@@ -86,6 +86,7 @@ class ImageDatasetMultiChannel(ImageDataset):
 
         # Pre-generate patch coordinates for each image
         self.__precomputed_patches = {}
+        random.seed(self._patch_random_seed)
         if self._patch_dim and self._num_patches_per_image:
             for idx, image_path in enumerate(self._ImageDataset__image_path):
                 image_shape = np.array(Image.open(image_path).convert("I;16")).shape[:2]
