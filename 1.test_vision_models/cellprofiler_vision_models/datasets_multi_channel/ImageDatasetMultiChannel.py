@@ -27,7 +27,8 @@ class ImageDatasetMultiChannel(ImageDataset):
             _target_transform: Optional[ImageOnlyTransform] = None,
             _patch_dim: Optional[int] = None,
             _num_patches_per_image: Optional[int] = None,
-            _patch_random_seed: Optional[int] = None
+            _patch_random_seed: Optional[int] = None,
+            _filter_filenames: Optional[list[str]] = None
             ):
         """Calls super class initilization and additionally stores input and target definition
 
@@ -51,6 +52,8 @@ class ImageDatasetMultiChannel(ImageDataset):
         :type _num_patches_per_image: Optional[int]
         :param _patch_random_seed: random seed for patching, only used if _patch_dim is specified
         :type _patch_random_seed: Optional[int]
+        :param _filter_filenames: list of strings representing filenames to be included in the dataset
+        :type _filter_filenames: Optional[list[str]]
         """
         
         # superclass handles directory and transformation specification
@@ -70,6 +73,13 @@ class ImageDatasetMultiChannel(ImageDataset):
         self._ImageDataset__image_path = [
             p for p in self._ImageDataset__image_path if self._extract_channel(p) == self.__input_channel_name
         ]
+
+        # Apply the filename filter if provided
+        if _filter_filenames is not None:
+            filtered_paths = [p for p in self._ImageDataset__image_path if p.name in _filter_filenames]
+            if not filtered_paths:
+                raise ValueError("No matching files found after applying the filter.")
+            self._ImageDataset__image_path = filtered_paths
         
         self._patch_dim = _patch_dim
         if _patch_dim is None and _num_patches_per_image is not None:
