@@ -86,7 +86,7 @@ class ImageDatasetMultiChannel(ImageDataset):
 
         # Pre-generate patch coordinates for each image
         self.__precomputed_patches = {}
-        if self.__patch_dim and self.__num_patches:
+        if self.__patch_dim and self._num_patches_per_image:
             for idx, image_path in enumerate(self._ImageDataset__image_path):
                 image_shape = np.array(Image.open(image_path).convert("I;16")).shape[:2]
                 self.__precomputed_patches[idx] = self.__get_random_patches(image_shape)
@@ -126,7 +126,7 @@ class ImageDatasetMultiChannel(ImageDataset):
         :rtype: list[Tuple[int, int]]
         """
         max_x, max_y = image_size[0] - self.__patch_dim, image_size[1] - self.__patch_dim
-        return [(random.randint(0, max_x), random.randint(0, max_y)) for _ in range(self.__num_patches)]
+        return [(random.randint(0, max_x), random.randint(0, max_y)) for _ in range(self._num_patches_per_image)]
     
     @property
     def input_name(self)->str:
