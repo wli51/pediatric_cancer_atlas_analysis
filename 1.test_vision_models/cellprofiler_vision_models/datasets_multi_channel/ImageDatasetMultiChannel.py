@@ -159,6 +159,20 @@ class ImageDatasetMultiChannel(ImageDataset):
             raise ValueError("The target is not yet defined, so __target_names is not defined.")
         return self.__target_names
 
+    @property
+    def patch_coords(self) -> Tuple[int, int]:
+        """Property to return the current patch location.
+
+        :raises ValueError: If patching is not enabled or the patch location is not defined.
+        :return: Coordinates of the current patch (top-left corner).
+        :rtype: Tuple[int, int]
+        """
+        if not (self._patch_dim and self._num_patches_per_image):
+            raise ValueError("Patching is not enabled, so patch locations are not defined.")
+        if self.__current_patch_coords is None:
+            raise ValueError("The current patch location is not defined.")
+        return self.__current_patch_coords
+
     def __getitem__(self, _idx: int)->Tuple[torch.Tensor, torch.Tensor]:
         """Retrieve input and target image
 
@@ -188,6 +202,7 @@ class ImageDatasetMultiChannel(ImageDataset):
 
             # Access precomputed patch coordinates and extract patches
             patch_coords = self.__precomputed_patches[image_idx][patch_idx]
+            self.__current_patch_coords = patch_coords  # Store current patch location
             input_patch = input_image[patch_coords[0]:patch_coords[0] + self._patch_dim, patch_coords[1]:patch_coords[1] + self._patch_dim]
             target_patches = np.stack([
                 channel[patch_coords[0]:patch_coords[0] + self._patch_dim, patch_coords[1]:patch_coords[1] + self._patch_dim]
