@@ -92,6 +92,11 @@ class ImageDatasetMultiChannel(ImageDataset):
                 self.__precomputed_patches[idx] = self.__get_random_patches(image_shape)
         else:
             self.__precomputed_patches = None
+
+        # Add cache for current image to use with patch generation
+        self.__current_image_idx = None
+        self.__current_input_image = None
+        self.__current_target_images = None
     
     def _extract_channel(self, 
                          path: pathlib.Path)->str:
@@ -169,7 +174,7 @@ class ImageDatasetMultiChannel(ImageDataset):
         """
         if not (self._patch_dim and self._num_patches_per_image):
             raise ValueError("Patching is not enabled, so patch locations are not defined.")
-        if self.__current_patch_coords is None:
+        if not self.__current_patch_coords:
             raise ValueError("The current patch location is not defined.")
         return self.__current_patch_coords
 
@@ -193,20 +198,31 @@ class ImageDatasetMultiChannel(ImageDataset):
                 for target_channel in self.__target_channel_names
             ]
 
-            # Load input and target images
-            input_image = np.array(Image.open(self._ImageDataset__input_dir / self.__input_name).convert("I;16"))
-            target_images = np.stack([
-                np.array(Image.open(self._ImageDataset__target_dir / target_name).convert("I;16"))
-                for target_name in self.__target_names
-            ], axis=0)
+            # Update cached image and target images if necessary
+            if self.__current_image_idx is None or self.__current_image_idx != image_idx:
+                self.__current_image_idx = image_idx
+
+                # Load and cache input and target images
+                self.__current_input_image = np.array(
+                    Image.open(self._ImageDataset__input_dir / self.__input_name).convert("I;16")
+                )
+                self.__current_target_images = np.stack([
+                    np.array(Image.open(self._ImageDataset__target_dir / target_name).convert("I;16"))
+                    for target_name in self.__target_names
+                ], axis=0)
 
             # Access precomputed patch coordinates and extract patches
             patch_coords = self.__precomputed_patches[image_idx][patch_idx]
-            self.__current_patch_coords = patch_coords  # Store current patch location
-            input_patch = input_image[patch_coords[0]:patch_coords[0] + self._patch_dim, patch_coords[1]:patch_coords[1] + self._patch_dim]
+            self.__current_patch_coords = patch_coords
+            input_patch = self.__current_input_image[
+                patch_coords[0]:patch_coords[0] + self._patch_dim,
+                patch_coords[1]:patch_coords[1] + self._patch_dim
+            ]
             target_patches = np.stack([
-                channel[patch_coords[0]:patch_coords[0] + self._patch_dim, patch_coords[1]:patch_coords[1] + self._patch_dim]
-                for channel in target_images
+                channel[
+                    patch_coords[0]:patch_coords[0] + self._patch_dim,
+                    patch_coords[1]:patch_coords[1] + self._patch_dim
+                ] for channel in self.__current_target_images
             ])
 
             # Apply transformations to patches
