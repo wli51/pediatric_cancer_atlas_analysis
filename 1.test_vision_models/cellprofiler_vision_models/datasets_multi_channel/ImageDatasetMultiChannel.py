@@ -9,7 +9,11 @@ from PIL import Image
 from external_code_CM_vision_models.datasets.ImageDataset import ImageDataset
 
 class ImageDatasetMultiChannel(ImageDataset):
-    """Dataset for paired Brightfield and multi-channel target images."""
+    """
+    Dataset for paired Brightfield and multi-channel target images.
+    Supports random patching of images and returns paired patches for training 
+    if _patch_dim is specified, otherwise returns paired images.
+    """
 
     def __init__(
             self, 
@@ -20,6 +24,9 @@ class ImageDatasetMultiChannel(ImageDataset):
             _channel_regex_expr: Pattern[str]=r'ch\d+',
             _input_transform: Optional[ImageOnlyTransform] = None,
             _target_transform: Optional[ImageOnlyTransform] = None,
+            _patch_dim: Optional[int] = None,
+            _num_patches_per_image: Optional[int] = None,
+            _patch_random_seed: Optional[int] = None
             ):
         """Calls super class initilization and additionally stores input and target definition
 
@@ -37,6 +44,12 @@ class ImageDatasetMultiChannel(ImageDataset):
         :type _input_transform: Optional[ImageOnlyTransform]
         :param _target_transform: target transformation
         :type _target_transform: Optional[ImageOnlyTransform]
+        :param _patch_dim: patch dimension, if unspecified, no patching is performed and __getitem__ function returns images
+        :type _patch_dim: Optional[int]
+        :param _num_patches_per_image: number of patches per image, only used if _patch_dim is specified
+        :type _num_patches_per_image: Optional[int]
+        :param _patch_random_seed: random seed for patching, only used if _patch_dim is specified
+        :type _patch_random_seed: Optional[int]
         """
         
         # superclass handles directory and transformation specification
@@ -56,6 +69,9 @@ class ImageDatasetMultiChannel(ImageDataset):
         self._ImageDataset__image_path = [
             p for p in self._ImageDataset__image_path if self._extract_channel(p) == self.__input_channel_name
         ]
+
+        self._patch_dim = _patch_dim
+        self._num_patches_per_image = _num_patches_per_image
     
     def _extract_channel(self, 
                          path: pathlib.Path)->str:
