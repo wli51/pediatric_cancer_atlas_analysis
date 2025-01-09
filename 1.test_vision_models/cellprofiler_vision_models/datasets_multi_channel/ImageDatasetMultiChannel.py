@@ -164,16 +164,54 @@ class ImageDatasetMultiChannel(ImageDataset):
 
         :param _idx: index of the image
         :type _idx: int
-        :return: input image, target images
-        :rtype: tuple
+        :return: input image, target images or input patch, target patches
+        :rtype: Tuple[torch.Tensor, torch.Tensor]
         """
 
-        self.__input_name = self._ImageDataset__image_path[_idx].name
-        self.__target_names = [
-            str(self.__input_name).replace(
-                self.__input_channel_name, 
-                target_channel_names) for target_channel_names in self.__target_channel_names
-        ]
+        if self._patch_dim and self._num_patches_per_image:
+
+            # Compute image and patch index to access the correct patch coordinates and image names
+            image_idx = _idx // self._num_patches_per_image
+            patch_idx = _idx % self._num_patches_per_image
+            self.__input_name = self._ImageDataset__image_path[image_idx].name
+            self.__target_names = [
+                str(self.__input_name).replace(self.__input_channel_name, target_channel)
+                for target_channel in self.__target_channel_names
+            ]
+
+            # Load input and target images
+            input_image = np.array(Image.open(self._ImageDataset__input_dir / self.__input_name).convert("I;16"))
+            target_images = np.stack([
+                np.array(Image.open(self._ImageDataset__target_dir / target_name).convert("I;16"))
+                for target_name in self.__target_names
+            ], axis=0)
+
+            # Access precomputed patch coordinates and extract patches
+            patch_coords = self.__precomputed_patches[image_idx][patch_idx]
+            input_patch = input_image[patch_coords[0]:patch_coords[0] + self._patch_dim, patch_coords[1]:patch_coords[1] + self._patch_dim]
+            target_patches = np.stack([
+                channel[patch_coords[0]:patch_coords[0] + self._patch_dim, patch_coords[1]:patch_coords[1] + self._patch_dim]
+                for channel in target_images
+            ])
+
+            # Apply transformations to patches
+            if self._ImageDataset__input_transform:
+                input_patch = torch.from_numpy(self._ImageDataset__input_transform(image=input_patch)["image"]).unsqueeze(0).float()
+            if self._ImageDataset__target_transform:
+                target_patches = torch.stack([
+                    torch.from_numpy(self._ImageDataset__target_transform(image=patch)["image"]).float()
+                    for patch in target_patches
+                ])
+
+            return input_patch, target_patches
+        
+        else:
+            self.__input_name = self._ImageDataset__image_path[_idx].name
+            self.__target_names = [
+                str(self.__input_name).replace(
+                    self.__input_channel_name, 
+                    target_channel_names) for target_channel_names in self.__target_channel_names
+            ]
 
         input_image = np.array(
                 Image.open(self._ImageDataset__input_dir / self.__input_name).convert("I;16")
