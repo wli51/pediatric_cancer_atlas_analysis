@@ -213,26 +213,26 @@ class ImageDatasetMultiChannel(ImageDataset):
                     target_channel_names) for target_channel_names in self.__target_channel_names
             ]
 
-        input_image = np.array(
-                Image.open(self._ImageDataset__input_dir / self.__input_name).convert("I;16")
-        )
+            input_image = np.array(
+                    Image.open(self._ImageDataset__input_dir / self.__input_name).convert("I;16")
+            )
 
-        target_images = np.stack([
-            np.array(Image.open(self._ImageDataset__target_dir / target_name).convert("I;16"))
-            for target_name in self.__target_names
-        ], axis=0)  # Stacking along a channel axis
+            target_images = np.stack([
+                np.array(Image.open(self._ImageDataset__target_dir / target_name).convert("I;16"))
+                for target_name in self.__target_names
+            ], axis=0)  # Stacking along a channel axis
 
-        if self._ImageDataset__input_transform:
-            input_image = self._ImageDataset__input_transform(image=input_image)["image"]
+            if self._ImageDataset__input_transform:
+                input_image = self._ImageDataset__input_transform(image=input_image)["image"]
 
-            # Reshape transformed image
-            input_image = torch.from_numpy(input_image).unsqueeze(0).float()
+                # Reshape transformed image
+                input_image = torch.from_numpy(input_image).unsqueeze(0).float()
 
-        if self._ImageDataset__target_transform:
-            transformed_target_images = []
-            for channel in target_images:
-                transformed_channel = self._ImageDataset__target_transform(image=channel)["image"]
-                transformed_target_images.append(transformed_channel)
-            target_images = torch.stack([torch.from_numpy(img).float() for img in transformed_target_images], dim=0)
+            if self._ImageDataset__target_transform:
+                transformed_target_images = []
+                for channel in target_images:
+                    transformed_channel = self._ImageDataset__target_transform(image=channel)["image"]
+                    transformed_target_images.append(transformed_channel)
+                target_images = torch.stack([torch.from_numpy(img).float() for img in transformed_target_images], dim=0)
 
-        return input_image, target_images
+            return input_image, target_images
