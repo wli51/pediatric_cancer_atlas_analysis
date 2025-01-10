@@ -188,6 +188,20 @@ class ImageDatasetMultiChannel(ImageDataset):
         if not self.__current_patch_coords:
             raise ValueError("The current patch location is not defined.")
         return self.__current_patch_coords
+    
+    @property
+    def current_input_image(self)->np.ndarray:
+        """Property to return the current input image
+
+        :raises ValueError: When input is not yet defined
+        :return: numpy array representation of the current input image
+        :rtype: np.ndarray
+        """
+        if not self._patch_dim or not self._num_patches_per_image:
+            raise ValueError("Patching is not enabled, input images should be accessed through __getitem__.")
+        elif self.__current_image_idx is None:
+            raise ValueError("The input is not yet defined.")
+        return self.__current_input_image
 
     def __getitem__(self, _idx: int)->Tuple[torch.Tensor, torch.Tensor]:
         """Retrieve input and target image
