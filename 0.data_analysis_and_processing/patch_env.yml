@@ -1,0 +1,28 @@
+name: patch_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  # Parquet processing dependencies
+  - pandas
+  - pyarrow  # Parquet backend for pandas
+  - fastparquet  # Alternative Parquet backend
+  # Image processing dependencies
+  - opencv  # For image manipulation and patch generation
+  - pillow  # Alternative for image processing
+  # Computational libraries
+  - numpy  # Core for numerical operations
+  - scipy  # Useful for spatial processing
+  # Visualization (optional, for debugging and visualization of patches)
+  - matplotlib
+  - seaborn
+  # Additional tools (optional, for performance and file management)
+  - dask  # Distributed and parallel data processing
+  - tqdm  # Progress bars
+  - jupyterlab  # For working in a notebook environment
+  # Install pip packages (if needed)
+  - pip
+  - pip:
+      - imageio  # For reading and writing image files
+      - scikit-image  # Advanced image processing
