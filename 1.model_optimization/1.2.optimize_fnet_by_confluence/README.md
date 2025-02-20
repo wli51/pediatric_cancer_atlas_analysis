@@ -1,0 +1,1 @@
+This folder contains code for optimziation on the basic training hyperparameters on two separate datasets: the high confluence U2-OS and the low confluence U2-OS
