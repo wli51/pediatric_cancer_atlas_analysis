@@ -1,0 +1,1 @@
+This folder includes the analysis of training wGAN gp without information from the hyper-parameter optimization step and instead relies on the parameters described by https://github.com/crosszamirski/Label-free-prediction-of-Cell-Painting-from-brightfield-images
