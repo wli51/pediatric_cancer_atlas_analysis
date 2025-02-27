@@ -1,0 +1,8 @@
+# config.yml to define paths to the local pediatric_cancer_atlas_profiling repo
+paths:
+  pediatric_cancer_atlas_profiling_path: '/PATH/TO/PROFILING/REPO/' # REPLACE WITH YOUR OWN LOCAL PATH
+  sc_features_path: '/PATH/TO/SC/FEATURES/' # REPLACE WITH YOUR OWN LOCAL PATH
+
+data:
+  input_channel_keys: ["OrigBrightfield"]
+  target_channel_keys: ["OrigDNA", "OrigER", "OrigAGP", "OrigMito", "OrigRNA"]
