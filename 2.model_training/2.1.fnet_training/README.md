@@ -1,0 +1,1 @@
+This folder contains notebook for training of FNet models on two separate datasets: the high confluence U2-OS and the low confluence U2-OS, with optimal hyper-parameters
