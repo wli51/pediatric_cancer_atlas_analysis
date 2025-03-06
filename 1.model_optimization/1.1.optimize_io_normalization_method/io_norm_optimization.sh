@@ -2,8 +2,8 @@
 
 # Initialize Conda for Bash
 conda init bash
-# Activate the Conda environment (change 'your_env_name' to your environment name)
-conda activate your_env_name
+# Activate the Conda environment
+conda activate alsf_analysis
 
 # Create the output directory if it does not exist
 mkdir -p nbconverted
