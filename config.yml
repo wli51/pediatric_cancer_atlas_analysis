@@ -1,7 +1,8 @@
 # config.yml to define paths to the local pediatric_cancer_atlas_profiling repo
 paths:
-  pediatric_cancer_atlas_profiling_path: '/PATH/TO/PROFILING/REPO/' # REPLACE WITH YOUR OWN LOCAL PATH
-  sc_features_path: '/PATH/TO/SC/FEATURES/' # REPLACE WITH YOUR OWN LOCAL PATH
+  pediatric_cancer_atlas_profiling_path: '/home/weishanli/Waylab/ALSF_pilot/pediatric_cancer_atlas_profiling/' # REPLACE WITH YOUR OWN LOCAL PATH
+  sc_features_path: '/home/weishanli/Waylab/ALSF_pilot/data/ALSF_pilot_data/preprocessed_profiles_SN0313537/single_cell_profiles' # REPLACE WITH YOUR OWN LOCAL PATH
+  software_path: '/home/weishanli/Waylab/'
 
 data:
   input_channel_keys: ["OrigBrightfield"]
