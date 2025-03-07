@@ -1,3 +1,11 @@
+# all pngs under plots
+**/plots/*.png
+
+# all csvs under intermediate or validation or evaluation
+**/intermediate/*.csv
+**/validation/*.csv
+**/evaluation/*.csv
+
 # mlflow output
 **/mlruns/*
 
