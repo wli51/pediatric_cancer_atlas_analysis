@@ -1,0 +1,15 @@
+name: py-complexheatmap
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - jupyter
+  - notebook
+  - ipykernel
+  - pandas
+  - matplotlib
+  - seaborn
+  - pip
+  - pip:
+      - PyComplexHeatmap
