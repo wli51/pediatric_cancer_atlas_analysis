@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import pathlib
@@ -18,7 +18,7 @@ import joblib
 
 # ## Read config
 
-# In[2]:
+# In[ ]:
 
 
 with open(pathlib.Path('.').absolute().parent.parent / "config.yml", "r") as file:
@@ -27,7 +27,7 @@ with open(pathlib.Path('.').absolute().parent.parent / "config.yml", "r") as fil
 
 # ## Import virtual_stain_flow software 
 
-# In[3]:
+# In[ ]:
 
 
 sys.path.append(config['paths']['software_path'])
@@ -62,7 +62,7 @@ from virtual_stain_flow.callbacks.IntermediatePlot import IntermediatePlot
 
 # ## Define paths and other train parameters
 
-# In[4]:
+# In[ ]:
 
 
 ## Loaddata for train
@@ -89,6 +89,7 @@ PLOT_DIR.mkdir(parents=True, exist_ok=True)
 ## Basic data generation and max epoch definition
 PATCH_SIZE = 256
 EPOCHS = 1_000
+DISC_BATCH_NORM = True
 
 ## Channels for input and target are read from config
 INPUT_CHANNEL_NAMES = config['data']['input_channel_keys']
@@ -97,7 +98,7 @@ TARGET_CHANNEL_NAMES = config['data']['target_channel_keys']
 
 # ## Defines how the train data will be divided to train models on two levels of confluence
 
-# In[5]:
+# In[ ]:
 
 
 DATA_GROUPING = {
@@ -112,7 +113,7 @@ DATA_GROUPING = {
 
 # ## Create patched dataset from heldout data for use with plotting predictions during optimization
 
-# In[6]:
+# In[ ]:
 
 
 loaddata_heldout_df = pd.read_csv(LOADDATA_HELDOUT_FILE_PATH)
@@ -183,7 +184,7 @@ def objective(trial, dataset, plot_dataset, channel_name, confluence_group_name,
     disc_conv_depth = trial.suggest_int('disc_conv_depth', 3, 5) # convolutional depth for discriminator network
 
     # how often is the generator/discriminator weight updated (once every x epochs)
-    gen_update_freq = trial.suggest_int('gen_update_freq', 2, 8)
+    gen_update_freq = trial.suggest_int('gen_update_freq', 2, 7)
     disc_update_freq = 1 # fixed for wGaN gp
 
     # batch size and early stopping patience
@@ -206,7 +207,8 @@ def objective(trial, dataset, plot_dataset, channel_name, confluence_group_name,
         n_in_channels = 2, # 1 input brightfield + 1 target fluo channel
         n_in_filters = 64,
         _conv_depth = disc_conv_depth,
-        _pool_before_fc = True
+        _pool_before_fc = True,
+        _batch_norm = DISC_BATCH_NORM
     )
 
     generator_optimizer = optim.Adam(generator.parameters(), 
@@ -259,6 +261,7 @@ def objective(trial, dataset, plot_dataset, channel_name, confluence_group_name,
             "disc_optim_beta0": disc_optim_beta0,
             "disc_optim_beta1": disc_optim_beta1,
             "disc_weight_decay": disc_optim_weight_decay,
+            "disc_batch_norm": DISC_BATCH_NORM,
             # discrminator model hyperparameter(s)
             "disc_conv_depth": disc_conv_depth,
             # dataset hyperparameters
