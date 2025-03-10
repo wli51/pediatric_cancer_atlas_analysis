@@ -133,7 +133,7 @@ def free_gpu_memory():
 
 def objective(trial, dataset, channel_name):
 
-    # Suggest an input and targettransform
+    # Suggest an input and target transform
     input_transform = trial.suggest_categorical("input_transform", list(NORM_METHODS.keys()))
     target_transform = trial.suggest_categorical("target_transform", list(NORM_METHODS.keys()))
 
