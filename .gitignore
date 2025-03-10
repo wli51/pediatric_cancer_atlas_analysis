@@ -1,5 +1,6 @@
 # all pngs under plots
 **/plots/*.png
+**/*_plots/*.png
 
 # all csvs under intermediate or validation or evaluation
 **/intermediate/*.csv
