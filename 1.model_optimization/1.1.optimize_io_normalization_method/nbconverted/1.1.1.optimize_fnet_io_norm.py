@@ -3,12 +3,13 @@
 
 # ## This notebook runs optimization experiments on different combination of input/target normalization image transforms using the FNet model architecture by fixing hyper parameters during training to understand the effect of normalization methods on model performance.
 
-# In[1]:
+# In[ ]:
 
 
 import pathlib
 import sys
 import yaml
+import gc
 
 import pandas as pd
 import torch
@@ -19,6 +20,7 @@ import joblib
 
 
 # ## Read config
+# Paths to image data/metadata and dependent software location, as well as channel information are obtained from the config
 
 # In[2]:
 
@@ -123,17 +125,18 @@ NORM_METHOD_ACTIVATION = {
 
 # ## Define optimization objective functions
 
-# In[6]:
+# In[ ]:
 
 
-import gc
+CACHE_DATA = True
+
 def free_gpu_memory():
     gc.collect()
     torch.cuda.empty_cache()
 
 def objective(trial, dataset, channel_name):
 
-    # Suggest an input and target transform
+    # Suggest an input and targettransform
     input_transform = trial.suggest_categorical("input_transform", list(NORM_METHODS.keys()))
     target_transform = trial.suggest_categorical("target_transform", list(NORM_METHODS.keys()))
 
@@ -142,10 +145,20 @@ def objective(trial, dataset, channel_name):
     dataset.set_target_transform(NORM_METHODS[target_transform]["class"](**NORM_METHODS[target_transform]["args"]))
 
     ## Cache dataset
-    cached_dataset = CachedDataset(
-            dataset=dataset,
-            prefill_cache=True
-        )
+    # Caching PatchDatasets (into RAM) can substantially improve training speed, mostly
+    # due to speeding up the data shuffling process that can be slow with dynamically
+    # cropping patches from large images. However, to really benefit from caching it is
+    # necessary to use a cache size that fits the entire dataset (or close to doing so).
+    # Consider not using the Cached Dataset if memory is limited. Training/optimization is 
+    # completely functional with the dynamic PatchDataset.
+    if CACHE_DATA:
+        dataset = CachedDataset(
+                dataset=dataset,
+                prefill_cache=True
+            )
+    else:
+        # uses the dynamic PatchDataset
+        pass
 
     ## Setup model and optimizer
     model = FNet(depth=CONV_DEPTH, 
@@ -189,7 +202,7 @@ def objective(trial, dataset, channel_name):
         model = model,
         optimizer = optimizer,
         backprop_loss = torch.nn.L1Loss(), # MAE loss for backpropagation
-        dataset = cached_dataset,
+        dataset = dataset,
         batch_size = BATCH_SIZE,
         epochs = EPOCHS,
         patience = PATIENCE,
@@ -216,15 +229,16 @@ def objective(trial, dataset, channel_name):
 
 # ## Optimize for I/O normalizationm method per Channel
 
-# In[7]:
+# In[ ]:
 
 
-RUN_EXTRA = True
 N_TRIALS = 50
 
-## Load dataset
+## Loaddata for optimization
 loaddata_df = pd.read_csv(LOADDATA_FILE_PATH)
 sc_features = pd.DataFrame()
+
+## Retrieve relevant sc features by assemblying them from parquet files
 for plate in loaddata_df['Metadata_Plate'].unique():
     sc_features_parquet = SC_FEATURES_DIR / f'{plate}_sc_normalized.parquet'
     if not sc_features_parquet.exists():
@@ -239,6 +253,7 @@ for plate in loaddata_df['Metadata_Plate'].unique():
             )
         ])
 
+## Create patch dataset
 pds = PatchDataset(
         _loaddata_csv=loaddata_df,
         _sc_feature=sc_features,
@@ -258,17 +273,15 @@ for channel_name in TARGET_CHANNEL_NAMES:
     ## Configure dataset channel
     pds.set_input_channel_keys(INPUT_CHANNEL_NAMES)
     pds.set_target_channel_keys(channel_name)
+    ## Caching of dataset is handled within the objective function due 
+    ## to the need to change normalization methods for each trial
 
     print(f"Beginning optimization for channel: {channel_name} for io normalization methods")
 
     # Load the existing study
     study_path = OPTUNA_JOBLIB_DIR / f"FNet_optimize_{channel_name}_io_norm.joblib"
     if study_path.exists():
-        if RUN_EXTRA:
-            study = joblib.load(study_path)
-        else:
-            print("Skipping optimization due to existing joblib...")
-            continue
+        study = joblib.load(study_path)
     else:
         # Or create if not already existing
         study = optuna.create_study(
@@ -277,10 +290,11 @@ for channel_name in TARGET_CHANNEL_NAMES:
             sampler=optuna.samplers.TPESampler(seed=42)
         )
 
-    ## Run up to N_TRIALS
+    # Resume optimization and run up until N_TRIALS
     while len(study.trials) < N_TRIALS:
         study.optimize(lambda trial: objective(trial, pds, channel_name), n_trials=1)
         joblib.dump(study, study_path)
+        print(f"Saved study after trial {len(study.trials)}/{N_TRIALS}")
     
     print(f"{N_TRIALS} of Normalization Method Optimization for {channel_name} completed.")
 
