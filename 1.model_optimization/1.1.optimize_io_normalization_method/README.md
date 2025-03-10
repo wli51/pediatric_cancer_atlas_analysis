@@ -1,4 +1,8 @@
-# This folder contains code/notebook for running optimziation trials on the normalization method used for input and target images working with FNet models.
+# This folder contains code for determining the optimal combination of input and target normalization method to use with FNet. 
+This is achieved with a running optuna trials sampling randomly from one of the three possible image normalization methods (independently for both the input and target normalization): 
+1. min max normalization with the max pixel intensity of 16 bit image as the normalization factor
+2. z score normalization on a per image/patch basis
+3. raw 8 bit transformation from 16 bit image
 
 This optimization analysis (and other optimizations in general) is dependent on output from running the notebooks under 0.data_preprocessing
 
