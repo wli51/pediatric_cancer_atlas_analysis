@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# ## This notebook runs optimization experiments on different combination of input/target normalization image transforms with FNet model using fixed training hyper parameters to inform decision of what normalization method to use
+# ## This notebook runs optimization experiments on different combination of input/target normalization image transforms using the FNet model architecture by fixing hyper parameters during training to understand the effect of normalization methods on model performance.
 
 # In[1]:
 
