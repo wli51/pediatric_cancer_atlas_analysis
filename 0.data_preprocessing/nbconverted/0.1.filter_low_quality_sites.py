@@ -9,11 +9,11 @@
 # In[1]:
 
 
+import sys
+import subprocess
 import pathlib
-import yaml
 
 import pandas as pd
-import numpy as np
 from scipy.stats import zscore
 
 
@@ -22,17 +22,26 @@ from scipy.stats import zscore
 # In[2]:
 
 
-with open(pathlib.Path('.').absolute().parent / "config.yml", "r") as file:
-    config = yaml.safe_load(file)
+def get_repo_root():
+    return subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        stdout=subprocess.PIPE,
+        check=True,
+        text=True
+    ).stdout.strip()
+
+repo_root = get_repo_root()
+sys.path.append(repo_root)
+
+from config import (
+    PROFILING_DIR
+)
 
 
 # ## Define paths
 
 # In[3]:
 
-
-## Access profiling repo path from config
-PROFILING_DIR = pathlib.Path(config['paths']['pediatric_cancer_atlas_profiling_path'])
 
 # Directory with QC CellProfiler outputs per plate
 QC_DIR = PROFILING_DIR / "1.illumination_correction" / "whole_img_qc_output"

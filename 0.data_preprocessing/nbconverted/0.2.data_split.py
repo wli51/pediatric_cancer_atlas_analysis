@@ -10,8 +10,9 @@
 # In[1]:
 
 
+import sys
+import subprocess
 import pathlib
-import yaml
 
 import numpy as np
 import pandas as pd
@@ -22,17 +23,26 @@ import pandas as pd
 # In[2]:
 
 
-with open(pathlib.Path('.').absolute().parent / "config.yml", "r") as file:
-    config = yaml.safe_load(file)
+def get_repo_root():
+    return subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        stdout=subprocess.PIPE,
+        check=True,
+        text=True
+    ).stdout.strip()
+
+repo_root = get_repo_root()
+sys.path.append(repo_root)
+
+from config import (
+    PROFILING_DIR
+)
 
 
 # ## Define paths to metadata, loaddata csvs and sc features
 
 # In[3]:
 
-
-## Access profiling repo path from config
-PROFILING_DIR = pathlib.Path(config['paths']['pediatric_cancer_atlas_profiling_path'])
 
 ## Output path for the data split loaddata csvs generated in this notebook 
 DATASPLIT_OUTPUT_DIR = pathlib.Path('.') / 'data_split_loaddata'
