@@ -1,0 +1,21 @@
+# This is a template file for the mandatory `config.yml`, 
+# needed to define input file paths and model configurations for 
+# pediatric_cancer_atlas_profiling repository.
+# 
+# To properly configure the analysis, create a copy of this template, 
+# naming as `config.yml`, and fill out the path fields below. 
+# Optionally, customize model input/target channel configuration here.
+
+paths:
+  pediatric_cancer_atlas_profiling_path: '/PATH/TO/PROFILING/REPO/' # REPLACE WITH YOUR OWN LOCAL PATH
+  sc_features_path: '/PATH/TO/SC/FEATURES/' # REPLACE WITH YOUR OWN LOCAL PATH
+
+# Customize as needed for desired model. 
+# The current configuration trains a model predicting
+# all fluorescent channels (target) from brightfield (input).
+#
+# For example, to train a model predicting the ER channel from the RNA channel,
+# change the `input_channel_keys` to ["OrigRNA"] and `target_channel_keys` to ["OrigER"].
+data:
+  input_channel_keys: ["OrigBrightfield"]
+  target_channel_keys: ["OrigDNA", "OrigER", "OrigAGP", "OrigMito", "OrigRNA"]
