@@ -4,7 +4,7 @@
 # # Explore Round 2 Data Patterns
 # An exploration of the round 2 data to understand prominent patterns.
 
-# In[ ]:
+# In[1]:
 
 
 import pathlib
@@ -18,7 +18,7 @@ from umap import UMAP
 
 # ## Find the root of the git repo on the host system
 
-# In[ ]:
+# In[2]:
 
 
 # Get the current working directory
@@ -41,7 +41,7 @@ if root_dir is None:
 
 # # Inputs
 
-# In[ ]:
+# In[3]:
 
 
 pilot_path = root_dir / "big_drive/alsf/ALSF_pilot_data"
@@ -69,7 +69,7 @@ round2df = pd.concat(
 )
 
 
-# In[ ]:
+# In[4]:
 
 
 round2_figure_path = pathlib.Path("round2_figures_path")
@@ -83,13 +83,13 @@ static_figure_path.mkdir(parents=True, exist_ok=True)
 
 # # High-Level Data Characteristics
 
-# In[ ]:
+# In[5]:
 
 
 print(round2df.shape)
 
 
-# In[ ]:
+# In[6]:
 
 
 print("Are there any NaN entries?")
@@ -98,51 +98,51 @@ print(f"Answer: {round2df.isna().any().any()}")
 
 # ## Metadata Exploration
 
-# In[ ]:
+# In[7]:
 
 
 round2df["Metadata_Plate"].unique()
 
 
-# In[ ]:
+# In[8]:
 
 
 round2df["Metadata_time_point"].unique()
 
 
-# In[ ]:
+# In[9]:
 
 
 print("\nUnique timepoints:")
 round2df["Metadata_time_point"].unique()
 
 
-# In[ ]:
+# In[10]:
 
 
 print("\nUnique Seeding Densities:")
 round2df["Metadata_seeding_density"].unique()
 
 
-# In[ ]:
+# In[11]:
 
 
 round2df["Metadata_seeding_density"].value_counts()
 
 
-# In[ ]:
+# In[12]:
 
 
 round2df["Metadata_cell_line"].unique()
 
 
-# In[ ]:
+# In[13]:
 
 
 round2df["Metadata_Image_Count_Cells"].nunique()
 
 
-# In[ ]:
+# In[14]:
 
 
 round2df["Metadata_Plate"].value_counts()
@@ -150,7 +150,7 @@ round2df["Metadata_Plate"].value_counts()
 
 # # UMAP Figures
 
-# In[ ]:
+# In[15]:
 
 
 vdf = round2df.groupby(
@@ -171,14 +171,14 @@ umapdf["Metadata_seeding_density"] = umapdf["Metadata_seeding_density"].astype(s
 umapdf["Metadata_time_point"] = umapdf["Metadata_time_point"].astype(str)
 
 
-# In[ ]:
+# In[16]:
 
 
 # Needed to display in chrome
 kaleido.get_chrome_sync()
 
 
-# In[ ]:
+# In[17]:
 
 
 fig = px.scatter(
@@ -201,7 +201,7 @@ fig.write_html(
 )
 
 
-# In[ ]:
+# In[18]:
 
 
 blue_green_colors = ["#edf8fb", "#b2e2e2", "#66c2a4", "#2ca25f", "#006d2c"]
@@ -226,7 +226,7 @@ fig.write_html(
 )
 
 
-# In[ ]:
+# In[19]:
 
 
 blue_green_short_colors = ["#edf8fb", "#99d8c9", "#2ca25f"]
@@ -253,7 +253,7 @@ fig.write_html(
 
 # # Treemap Cell Count Figures
 
-# In[ ]:
+# In[20]:
 
 
 cellcountdf = (
