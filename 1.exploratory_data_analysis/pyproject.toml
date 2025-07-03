@@ -1,0 +1,14 @@
+[project]
+name = "eda-pediatric-cancer-atlas"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+eda-pediatric-cancer-atlas = "eda_pediatric_cancer_atlas:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
