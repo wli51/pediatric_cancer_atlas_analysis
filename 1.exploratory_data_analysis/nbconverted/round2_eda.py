@@ -72,7 +72,7 @@ round2df = pd.concat(
 # In[4]:
 
 
-round2_figure_path = pathlib.Path("round2_figures_path")
+round2_figure_path = pathlib.Path("round2_figures")
 
 int_figure_path = round2_figure_path / "interactive_figures"
 int_figure_path.mkdir(parents=True, exist_ok=True)
@@ -266,13 +266,13 @@ fig = px.treemap(
     cellcountdf,
     path=["Metadata_cell_line", "Metadata_seeding_density", "Metadata_time_point"],
     values="count",
-    title="Treemap of Category Combinations",
+    title="Treemap of Cell Counts",
 )
 
 fig.show()
-fig.write_image(static_figure_path / "cell_count_treemap.png", width=2000, height=1200)
+fig.write_image(static_figure_path / "round2_cell_count_treemap.png", width=2000, height=1200)
 fig.write_html(
-    int_figure_path / "cell_count_treemap.html",
+    int_figure_path / "round2_cell_count_treemap.html",
     full_html=True,
     include_plotlyjs="embed",
 )
