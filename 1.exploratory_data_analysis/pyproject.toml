@@ -10,5 +10,5 @@ dependencies = []
 eda-pediatric-cancer-atlas = "eda_pediatric_cancer_atlas:main"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv"]
+build-backend = "uv.backend"
