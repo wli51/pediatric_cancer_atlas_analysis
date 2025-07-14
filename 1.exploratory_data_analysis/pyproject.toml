@@ -4,11 +4,21 @@ version = "0.1.0"
 description = "Exploratory Data Analysis for the pediatric cancer atlas"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "ipykernel>=6.29.5",
+    "kaleido>=1.0.0",
+    "matplotlib>=3.10.3",
+    "pandas>=2.3.1",
+    "pathlib2>=2.3.7.post1",
+    "plotly>=6.2.0",
+    "pyarrow>=20.0.0",
+    "pynvim>=0.5.2",
+    "umap-learn>=0.5.9.post2",
+]
 
 [project.scripts]
 eda-pediatric-cancer-atlas = "eda_pediatric_cancer_atlas:main"
 
 [build-system]
-requires = ["uv"]
-build-backend = "uv.backend"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
