@@ -13,6 +13,7 @@ import kaleido
 import pandas as pd
 import plotly.express as px
 import plotly.io as pio
+import pyarrow.parquet as pq
 from umap import UMAP
 
 
@@ -53,7 +54,7 @@ round2_profiles_path = (
 common_cols = None
 
 for pq_file in list(round2_profiles_path.rglob("*feature_selected.parquet")):
-    cols = pd.read_parquet(pq_file).columns
+    cols = pq.read_schema(pq_file).names
     if common_cols is None:
         common_cols = set(cols)
 
@@ -113,8 +114,8 @@ round2df["Metadata_time_point"].unique()
 # In[9]:
 
 
-print("\nUnique timepoints:")
-round2df["Metadata_time_point"].unique()
+print("\nUnique timepoints per plate:")
+print(round2df[["Metadata_Plate", "Metadata_time_point"]].drop_duplicates())
 
 
 # In[10]:
@@ -148,14 +149,20 @@ round2df["Metadata_Image_Count_Cells"].nunique()
 round2df["Metadata_Plate"].value_counts()
 
 
-# # UMAP Figures
+# # UMAP Morphology Figures
+# Sampled to show morphology relationships between experimental conditions
 
 # In[15]:
 
 
 vdf = round2df.groupby(
-    ["Metadata_cell_line", "Metadata_seeding_density", "Metadata_time_point"]
-).sample(n=50, random_state=0)
+    [
+        "Metadata_Plate",
+        "Metadata_cell_line",
+        "Metadata_seeding_density",
+        "Metadata_time_point",
+    ]
+).sample(n=25, random_state=0)
 
 umap_obj = UMAP(random_state=0)
 umapdf = umap_obj.fit_transform(
@@ -163,6 +170,7 @@ umapdf = umap_obj.fit_transform(
 )
 umapdf = pd.DataFrame(umapdf, columns=["umap0", "umap1"])
 umapdf = umapdf.assign(
+    Metadata_Plate=vdf["Metadata_Plate"].reset_index(drop=True),
     Metadata_cell_line=vdf["Metadata_cell_line"].reset_index(drop=True),
     Metadata_seeding_density=vdf["Metadata_seeding_density"].reset_index(drop=True),
     Metadata_time_point=vdf["Metadata_time_point"].reset_index(drop=True),
@@ -174,11 +182,49 @@ umapdf["Metadata_time_point"] = umapdf["Metadata_time_point"].astype(str)
 # In[16]:
 
 
-# Needed to display in chrome
+# Needed to display in chrome (if not installed)
 kaleido.get_chrome_sync()
 
 
 # In[17]:
+
+
+red_yellow_colors = ["#ffffb2", "#fed976", "#feb24c", "#fd8d3c", "#f03b20", "#bd0026"]
+
+fig = px.scatter(
+    umapdf,
+    x="umap0",
+    y="umap1",
+    color="Metadata_Plate",
+    title="UMAP by Plate",
+    color_discrete_sequence=red_yellow_colors,
+    marginal_x="violin",
+    marginal_y="violin",
+)
+
+fig.update_layout(
+    font=dict(size=22, color="black"),
+    legend=dict(font=dict(size=20)),
+    xaxis=dict(
+        title_font=dict(size=20),
+        tickfont=dict(size=16),
+    ),
+    yaxis=dict(
+        title_font=dict(size=20),
+        tickfont=dict(size=16),
+    ),
+)
+
+fig.show()
+fig.write_image(static_figure_path / "round1_plate_umap.png", width=2000, height=1200)
+fig.write_html(
+    int_figure_path / "round1_plate_umap.html",
+    full_html=True,
+    include_plotlyjs="embed",
+)
+
+
+# In[18]:
 
 
 fig = px.scatter(
@@ -188,6 +234,19 @@ fig = px.scatter(
     color="Metadata_cell_line",
     title="UMAP by Cell Line",
     color_discrete_sequence=px.colors.qualitative.Dark24,
+)
+
+fig.update_layout(
+    font=dict(size=22, color="black"),
+    legend=dict(font=dict(size=20)),
+    xaxis=dict(
+        title_font=dict(size=20),
+        tickfont=dict(size=16),
+    ),
+    yaxis=dict(
+        title_font=dict(size=20),
+        tickfont=dict(size=16),
+    ),
 )
 
 fig.show()
@@ -201,10 +260,10 @@ fig.write_html(
 )
 
 
-# In[18]:
+# In[19]:
 
 
-blue_green_colors = ["#edf8fb", "#b2e2e2", "#66c2a4", "#2ca25f", "#006d2c"]
+yellow_green_colors = ["#ffffcc", "#c2e699", "#78c679", "#31a354", "#006837"]
 
 fig = px.scatter(
     umapdf,
@@ -212,7 +271,22 @@ fig = px.scatter(
     y="umap1",
     color="Metadata_seeding_density",
     title="UMAP by Seeding Density",
-    color_discrete_sequence=blue_green_colors,
+    color_discrete_sequence=yellow_green_colors,
+    marginal_x="violin",
+    marginal_y="violin",
+)
+
+fig.update_layout(
+    font=dict(size=22, color="black"),
+    legend=dict(font=dict(size=20)),
+    xaxis=dict(
+        title_font=dict(size=20),
+        tickfont=dict(size=16),
+    ),
+    yaxis=dict(
+        title_font=dict(size=20),
+        tickfont=dict(size=16),
+    ),
 )
 
 fig.show()
@@ -226,10 +300,10 @@ fig.write_html(
 )
 
 
-# In[19]:
+# In[20]:
 
 
-blue_green_short_colors = ["#edf8fb", "#99d8c9", "#2ca25f"]
+yellow_green_short_colors = ["#ffeda0", "#feb24c", "#f03b20"]
 
 fig = px.scatter(
     umapdf,
@@ -237,7 +311,22 @@ fig = px.scatter(
     y="umap1",
     color="Metadata_time_point",
     title="UMAP by Time Point",
-    color_discrete_sequence=blue_green_short_colors,
+    color_discrete_sequence=yellow_green_short_colors,
+    marginal_x="violin",
+    marginal_y="violin",
+)
+
+fig.update_layout(
+    font=dict(size=22, color="black"),
+    legend=dict(font=dict(size=20)),
+    xaxis=dict(
+        title_font=dict(size=20),
+        tickfont=dict(size=16),
+    ),
+    yaxis=dict(
+        title_font=dict(size=20),
+        tickfont=dict(size=16),
+    ),
 )
 
 fig.show()
@@ -251,29 +340,66 @@ fig.write_html(
 )
 
 
-# # Treemap Cell Count Figures
+# # Visualize Cell Counts per Plate and Well
 
-# In[20]:
+# In[21]:
 
 
-cellcountdf = (
-    round2df[["Metadata_cell_line", "Metadata_seeding_density", "Metadata_time_point"]]
-    .value_counts()
-    .reset_index(name="count")
-)
+global_max = round2df.groupby(["Metadata_Plate", "Metadata_Well"]).size().max()
 
-fig = px.treemap(
-    cellcountdf,
-    path=["Metadata_cell_line", "Metadata_seeding_density", "Metadata_time_point"],
-    values="count",
-    title="Treemap of Cell Counts",
-)
+for plate in round2df["Metadata_Plate"].unique():
+    plate_df = round2df[round2df["Metadata_Plate"] == plate]
 
-fig.show()
-fig.write_image(static_figure_path / "round2_cell_count_treemap.png", width=2000, height=1200)
-fig.write_html(
-    int_figure_path / "round2_cell_count_treemap.html",
-    full_html=True,
-    include_plotlyjs="embed",
-)
+    well_counts = plate_df[["Metadata_Well"]].value_counts().reset_index(name="count")
+
+    meta_per_well = (
+        plate_df.groupby("Metadata_Well")[
+            ["Metadata_seeding_density", "Metadata_cell_line", "Metadata_time_point"]
+        ]
+        .first()
+        .reset_index()
+    )
+
+    meta_per_well = meta_per_well.rename(
+        columns={
+            "Metadata_seeding_density": "Seeding Density",
+            "Metadata_cell_line": "Cell Line",
+            "Metadata_time_point": "Time Point",
+        }
+    )
+
+    well_counts = well_counts.merge(meta_per_well, on="Metadata_Well").sort_values(
+        "Metadata_Well"
+    )
+
+    fig = px.bar(
+        well_counts,
+        x="Metadata_Well",
+        y="count",
+        hover_data=["Seeding Density", "Cell Line", "Time Point"],
+        title=f"Cell Count per Well - Plate {plate}",
+        labels={
+            "Metadata_Well": "Well",
+        },
+    )
+
+    fig.update_layout(
+        font=dict(size=18, color="black"),
+        xaxis_tickangle=-45,
+        yaxis_range=[0, global_max * 1.05],
+    )
+
+    fig.show()
+
+    fig.write_image(
+        static_figure_path / f"{plate}_well_cell_count.png",
+        width=2000,
+        height=1200,
+    )
+
+    fig.write_html(
+        int_figure_path / f"{plate}_well_cell_count.html",
+        full_html=True,
+        include_plotlyjs="embed",
+    )
 
